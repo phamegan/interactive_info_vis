@@ -1,11 +1,9 @@
 //custom variables for y-coordinate of sun & horizon
 let shapeHeight;
 
-let designWidth = 400;
-let designHeight= 400;
 let horizon ;
 function setup() {
-  createCanvas(designWidth,designHeight);
+  createCanvas(windowWidth,windowHeight);
   horizon =height/2;
 }
 
@@ -19,19 +17,19 @@ function draw() {
 
   //with if-else statement
   if (shapeHeight < horizon) {
-    background("lightblue"); // blue if above horizon
+    background("pink"); // pink if above horizon
     
   } else {
-    background("grey"); // grey if below horizon
+    background("white"); // white if below horizon
   }
 
   //sun
-  fill("white");
+  fill("lightyellow");
   
   rect(width/4, shapeHeight, width/2);
   textSize(20);
   fill("black");
-  text('Hi! My name is Megan', currentWidth/2, shapeHeight/2);
+  text('Hi! My name is Megan Pham', currentWidth/2, shapeHeight/2);
   
 
 
