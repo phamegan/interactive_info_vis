@@ -11,11 +11,13 @@ registerSketch('sk4', function (p) {
   let lastMinute = -1;
   let lastSecond = -1;
 
+  let wW;
+  let wH;
+
   p.setup = function () {
     wW = p.windowWidth;
     wH = p.windowHeight;
     p.createCanvas(wW, wH);
-    p.frameRate(10);
     p.frameRate(10);
 
       // Build initial state so it doesn't start empty
@@ -34,54 +36,16 @@ registerSketch('sk4', function (p) {
     lastSecond = s;
   };
 
-  // Functions to draw a tree
-  p.drawTree = function (x, y, size, irregularity, color) {
-    p.fill(color);
-    p.noStroke();
-    p.beginShape();
-    for (let angle = 0; angle < p.TWO_PI; angle += 0.1) {
-      let offset = p.noise(p.cos(angle) * irregularity, p.sin(angle) * irregularity) * irregularity;
-      let r = size + offset;
-      let xOffset = x + r * p.cos(angle);
-      let yOffset = y + r * p.sin(angle);
-      p.vertex(xOffset, yOffset);
-    }
-    p.endShape(p.CLOSE);
-  };
-
-  // Function to place multiple trees
-  p.placeN = function (n, xSpacing, ySpacing, type, targetArray) {
-    for (let i = 0; i < n; i++) {
-      let x = PAD + (i % 10) * xSpacing;
-      let y = PAD + Math.floor(i / 10) * ySpacing;
-      targetArray.push({ x, y, type });
-    }
-  };
-
-  // Function to place one tree
-  p.placeOne = function (xSpacing, ySpacing, type, targetArray) {
-    let i = targetArray.length;
-    let x = PAD + (i % 10) * xSpacing;
-    let y = PAD + Math.floor(i / 10) * ySpacing;
-    targetArray.push({ x, y, type });
-  };
-
-  // Function to draw all trees in an array
-  p.drawCircles = function (array, color) {
-    for (let tree of array) {
-      let size = tree.type === 'hour' ? 40 : tree.type === 'min' ? 20 : 10; // Size based on type
-      let irregularity = tree.type === 'hour' ? 10 : tree.type === 'min' ? 5 : 2; // Irregularity based on type
-      p.drawTree(tree.x, tree.y, size, irregularity, color);
-    }
-  };
-
   
   p.draw = function () {
-    // p.background(200, 240, 200);
-    // p.fill(30, 120, 40);
-    // p.textSize(32);
-    // p.textAlign(p.CENTER, p.CENTER);
-    // p.text('HWK #4. C', p.width / 2, p.height / 2);
+
+    p.background(250);
+    p.noStroke();
+
+    const h24 = p.hour();
+    const h12 = (h24 % 12) || 12;
+    const m = p.minute();
+    const s = p.second();
 
     // Build and reset state as time progresses
     // Rebuild hours once per hour
@@ -107,8 +71,86 @@ registerSketch('sk4', function (p) {
       }
       lastSecond = s;
     }
-    
-    
+
+    // Draw layers
+    p.drawShapes(circsH, 'hour');
+    p.drawShapes(circsM, 'min');
+    p.drawShapes(circsS, 'sec');
+
+    // Time label
+    p.fill(0);
+    p.textSize(40);
+    p.textAlign(p.LEFT, p.TOP);
+    p.text(`${p.nf(h12, 2)}:${p.nf(m, 2)}:${p.nf(s, 2)}`, 10, 10);
   };
+
+  // Functions to draw samplings, trees and mountains
+  p.drawShapes = function (arr, type) {
+    for (let c of arr) {
+      if (type === 'hour') {
+        p.drawMountain(c.x, c.y, c.d); // Draw mountain for hours
+      } else if (type === 'min') {
+        p.drawTree(c.x, c.y, c.d, 10, p.color(34, 139, 34)); // Draw larger tree for minutes
+      } else if (type === 'sec') {
+        p.drawTree(c.x, c.y, c.d, 5, p.color(60, 179, 113)); // Draw mini tree for seconds
+      }
+    }
+  };
+
+  p.placeN = function (n, minD, maxD, type, target) {
+    for (let i = 0; i < n; i++) p.placeOne(minD, maxD, type, target);
+  };
+
+  p.placeOne = function (minD, maxD, type, target) {
+    let tries = 0;
+    while (tries < 800) {
+      tries++;
+      const d = p.random(minD, maxD);
+      const x = p.random(PAD + d / 2, p.width - PAD - d / 2);
+      const y = p.random(PAD + d / 2, p.height - PAD - d / 2);
+      if (p.isFree(x, y, d)) {
+        target.push({ x, y, d, type });
+        return true;
+      }
+    }
+    return false; // (give up, too packed)
+  };
+
+  p.isFree = function (x, y, d) {
+    const all = circsH.concat(circsM, circsS);
+    for (let c of all) {
+      if (p.dist(x, y, c.x, c.y) < d / 2 + c.d / 2 + 1) { // Check for overlap
+        return false; 
+      }
+    }
+    return true;
+  };
+
+  // Function to draw a tree
+  p.drawTree = function (x, y, size, irregularity, color) {
+    p.fill(color);
+    p.noStroke();
+    p.beginShape();
+    for (let angle = 0; angle < p.TWO_PI; angle += 0.1) {
+      let offset = p.noise(p.cos(angle) * irregularity, p.sin(angle) * irregularity) * irregularity;
+      let r = size + offset;
+      let xOffset = x + r * p.cos(angle);
+      let yOffset = y + r * p.sin(angle);
+      p.vertex(xOffset, yOffset);
+    }
+    p.endShape(p.CLOSE);
+  };
+
+  // Function to draw a mountain
+  p.drawMountain = function (x, y, size) {
+    p.fill(139, 69, 19); // Brown color for the mountain
+    p.noStroke();
+    p.beginShape();
+    p.vertex(x - size / 2, y + size / 2); // Bottom left
+    p.vertex(x, y - size / 2); // Peak
+    p.vertex(x + size / 2, y + size / 2); // Bottom right
+    p.endShape(p.CLOSE);
+  };
+
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 });
