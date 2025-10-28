@@ -48,6 +48,33 @@ registerSketch('sk4', function (p) {
     }
     p.endShape(p.CLOSE);
   };
+
+  // Function to place multiple trees
+  p.placeN = function (n, xSpacing, ySpacing, type, targetArray) {
+    for (let i = 0; i < n; i++) {
+      let x = PAD + (i % 10) * xSpacing;
+      let y = PAD + Math.floor(i / 10) * ySpacing;
+      targetArray.push({ x, y, type });
+    }
+  };
+
+  // Function to place one tree
+  p.placeOne = function (xSpacing, ySpacing, type, targetArray) {
+    let i = targetArray.length;
+    let x = PAD + (i % 10) * xSpacing;
+    let y = PAD + Math.floor(i / 10) * ySpacing;
+    targetArray.push({ x, y, type });
+  };
+
+  // Function to draw all trees in an array
+  p.drawCircles = function (array, color) {
+    for (let tree of array) {
+      let size = tree.type === 'hour' ? 40 : tree.type === 'min' ? 20 : 10; // Size based on type
+      let irregularity = tree.type === 'hour' ? 10 : tree.type === 'min' ? 5 : 2; // Irregularity based on type
+      p.drawTree(tree.x, tree.y, size, irregularity, color);
+    }
+  };
+
   
   p.draw = function () {
     // p.background(200, 240, 200);
