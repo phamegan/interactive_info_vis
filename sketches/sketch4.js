@@ -12,9 +12,13 @@ registerSketch('sk4', function (p) {
   let lastSecond = -1;
 
   p.setup = function () {
-    p.createCanvas(800, 800);
+    wW = p.windowWidth;
+    wH = p.windowHeight;
+    p.createCanvas(wW, wH);
+    p.frameRate(10);
     p.frameRate(10);
 
+      // Build initial state so it doesn't start empty
     const h24 = p.hour();
     const h12 = (h24 % 12) || 12;
     const m = p.minute();
