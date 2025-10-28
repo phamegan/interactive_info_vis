@@ -33,6 +33,21 @@ registerSketch('sk4', function (p) {
     lastMinute = m;
     lastSecond = s;
   };
+
+  // Functions to draw a tree
+  p.drawTree = function (x, y, size, irregularity, color) {
+    p.fill(color);
+    p.noStroke();
+    p.beginShape();
+    for (let angle = 0; angle < p.TWO_PI; angle += 0.1) {
+      let offset = p.noise(p.cos(angle) * irregularity, p.sin(angle) * irregularity) * irregularity;
+      let r = size + offset;
+      let xOffset = x + r * p.cos(angle);
+      let yOffset = y + r * p.sin(angle);
+      p.vertex(xOffset, yOffset);
+    }
+    p.endShape(p.CLOSE);
+  };
   
   p.draw = function () {
     // p.background(200, 240, 200);
@@ -65,6 +80,7 @@ registerSketch('sk4', function (p) {
       }
       lastSecond = s;
     }
+    
     
   };
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
