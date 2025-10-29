@@ -37,6 +37,42 @@ registerSketch('sk2', function (p) {
   };
   p.draw = function () {
     p.background(...COL_BG);
+    
+    // Time
+    const m = p.minute();
+    const s = p.second();
+    const activeRingIdx = m % RINGS;     // which ring is fading this minute
+    const fadeT = s / 60;                // 0..1 over the minute
+
+    // Geometry for flashlight and spot
+    const figX = FIG_X;
+    const figY = FIG_Y();
+
+    // Draw stick figure on top so it is visible
+    drawStickFigure(figX, figY);
   };
+
+  function drawStickFigure(x, y) {
+    p.push();
+    p.stroke(...COL_LINE);
+    p.strokeWeight(3);
+    p.noFill();
+
+    // head
+    p.circle(x, y - 30, 22);
+
+    // body
+    p.line(x, y - 20, x, y + 30);
+
+    // legs
+    p.line(x, y + 30, x - 16, y + 60);
+    p.line(x, y + 30, x + 16, y + 60);
+
+    // front arm holding flashlight
+    const handX = x + 26 * p.cos(BEAM_ANGLE);
+    const handY = y + 26 * p.sin(BEAM_ANGLE);
+    p.line(x, y - 6, handX, handY);
+    p.pop();
+  }
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 });
