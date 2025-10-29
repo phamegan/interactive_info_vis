@@ -2,6 +2,9 @@
 registerSketch('sk3', function (p) {
   p.state = {
     waterLevel: 1,                // 1 = full, 0 = empty
+    totalSeconds: .5 * 60,     // capacity in seconds
+    remainingSeconds: .5 * 60, // starts full
+    lastSecondTick: 0          // last 1s tick time
   };
 
   p.bottle = {
@@ -13,6 +16,7 @@ registerSketch('sk3', function (p) {
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.layoutBottle();
+    p.state.lastSecondTick = p.millis();
   };
 
   p.layoutBottle = function () {
@@ -67,13 +71,30 @@ registerSketch('sk3', function (p) {
     p.strokeWeight(1);
   };
 
+  p.tickTimerEachSecond = function () {
+    const now = p.millis();
+    if (now - p.state.lastSecondTick >= 1000) {
+      p.state.lastSecondTick = now;
+  
+      if (p.state.remainingSeconds > 0) {
+        p.state.remainingSeconds -= 1;
+  
+        // Update water level from time fraction
+        p.state.waterLevel = p.constrain(
+          p.state.remainingSeconds / p.state.totalSeconds, 0, 1
+        );
+      }
+    }
+  };
+
   p.draw = function () {
     p.background(240);
 
+    p.tickTimerEachSecond();
     // 1) bottle
     p.drawBottle();
   };
-
+  
   p.windowResized = function () {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
     p.layoutBottle();
