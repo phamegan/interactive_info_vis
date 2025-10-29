@@ -18,6 +18,8 @@ registerSketch('sk2', function (p) {
   const COL_LINE = [0, 0, 0];
   const COL_YEL  = [255, 235, 100];  // bright yellow
   const COL_OFF  = [0, 0, 0];        // black
+  
+  const MIN_ALPHA = 70; // minimum alpha for faded rings
 
   // Cached colors for lerp
   let cYel, cOff;
@@ -62,6 +64,8 @@ registerSketch('sk2', function (p) {
     drawFlashlight(figX, figY, torchTip);
 
     drawCone(figX, figY, torchTip, spotCenter);
+
+    drawRings(spotCenter.x, spotCenter.y, activeRingIdx, fadeT);
 
 
   };
@@ -147,6 +151,52 @@ registerSketch('sk2', function (p) {
     p.strokeWeight(1.5);
     p.line(a1.x, a1.y, b1.x, b1.y);
     p.line(a2.x, a2.y, b2.x, b2.y);
+  }
+  function drawRings(cx, cy, activeIdx, t) {
+    // Outer index 0, inner index RINGS-1
+    p.stroke(...COL_LINE);
+    p.strokeWeight(1.5);
+  
+    for (let i = 0; i < RINGS; i++) {
+      const outerR = OUTER_R() - i * RING_W();
+      const innerR = Math.max(0, outerR - RING_W());
+  
+      // Base color interpolation: yellow -> background
+      let baseCol;
+      if (i < activeIdx) {
+        baseCol = p.lerpColor(cYel, p.color(...COL_BG), 1);     // fully at BG tone
+      } else if (i === activeIdx) {
+        baseCol = p.lerpColor(cYel, p.color(...COL_BG), t);     // fading this minute
+      } else {
+        baseCol = cYel;                                         // future rings stay bright
+      }
+  
+      // Apply a minimum alpha so faded rings remain visible
+      const alpha = (i < activeIdx) ? MIN_ALPHA
+                   : (i === activeIdx) ? p.map(t, 0, 1, 200, MIN_ALPHA)
+                   : 220;
+  
+      const fillCol = p.color(p.red(baseCol), p.green(baseCol), p.blue(baseCol), alpha);
+  
+      // Filled annulus
+      p.noStroke();
+      p.fill(fillCol);
+      p.circle(cx, cy, outerR * 2);
+  
+      // Carve inner hole
+      p.fill(...COL_BG);
+      p.circle(cx, cy, innerR * 2);
+  
+      // Outline so rings are always legible
+      p.noFill();
+      p.stroke(...COL_LINE);
+      p.circle(cx, cy, outerR * 2);
+    }
+  
+    // Inner most dot outline
+    p.noFill();
+    p.stroke(...COL_LINE);
+    p.circle(cx, cy, Math.max(2, (OUTER_R() - RINGS * RING_W()) * 2));
   }
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 });
