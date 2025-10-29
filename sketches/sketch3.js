@@ -104,13 +104,46 @@ registerSketch('sk3', function (p) {
     p.pop();
   };
 
+  p.drawFaceWithMood = function () {
+    const size = Math.min(p.width, p.height) * 0.22;
+    const x = Math.max(160, p.width * 0.18);
+    const y = p.height / 2;
+  
+    const frac = p.state.remainingSeconds / p.state.totalSeconds; // 1..0
+    let mood = 0; // 0 happy, 1 neutral, 2 angry
+    if (frac > 0.5) mood = 0;
+    else if (frac > 0.2) mood = 1;
+    else mood = 2;
+  
+    p.drawFaceBase(x, y, size);
+  
+    p.push();
+    p.noFill();
+    p.stroke(0);
+    p.strokeWeight(4);
+    if (mood === 0) {
+      p.arc(x, y + size * 0.18, size * 0.44, size * 0.26, 0, p.PI);
+    } else if (mood === 1) {
+      p.line(x - size * 0.22, y + size * 0.2, x + size * 0.22, y + size * 0.2);
+    } else {
+      p.arc(x, y + size * 0.26, size * 0.44, size * 0.26, p.PI, 0);
+      const eyeOffsetX = size * 0.22;
+      const eyeOffsetY = size * 0.16;
+      p.line(x - eyeOffsetX - size * 0.06, y - eyeOffsetY - size * 0.08,
+             x - eyeOffsetX + size * 0.04, y - eyeOffsetY - size * 0.02);
+      p.line(x + eyeOffsetX - size * 0.04, y - eyeOffsetY - size * 0.02,
+             x + eyeOffsetX + size * 0.06, y - eyeOffsetY - size * 0.08);
+    }
+    p.pop();
+  };
+
   p.draw = function () {
     p.background(240);
     p.tickTimerEachSecond();
     p.drawBottle();
-    p.drawFaceBase(Math.max(160, p.width * 0.18), p.height / 2, Math.min(p.width, p.height) * 0.22);
-
+    p.drawFaceWithMood();
   };
+
   
   p.windowResized = function () {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
