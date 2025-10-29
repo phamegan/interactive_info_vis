@@ -48,8 +48,14 @@ registerSketch('sk2', function (p) {
     const figX = FIG_X;
     const figY = FIG_Y();
 
+    const torchLen = 38;
+    const torchTip = p.createVector(figX + torchLen * p.cos(BEAM_ANGLE),
+                                    figY + torchLen * p.sin(BEAM_ANGLE));
+
     // Draw stick figure on top so it is visible
     drawStickFigure(figX, figY);
+    drawFlashlight(figX, figY, torchTip);
+
   };
 
   function drawStickFigure(x, y) {
@@ -72,6 +78,40 @@ registerSketch('sk2', function (p) {
     const handX = x + 26 * p.cos(BEAM_ANGLE);
     const handY = y + 26 * p.sin(BEAM_ANGLE);
     p.line(x, y - 6, handX, handY);
+    p.pop();
+  }
+
+  function drawFlashlight(baseX, baseY, tip) {
+    // Centers of the two dots
+    const baseC = p.createVector(
+      baseX + 12 * p.cos(BEAM_ANGLE),
+      baseY + 12 * p.sin(BEAM_ANGLE)
+    );
+    const tipC = p.createVector(tip.x, tip.y);
+  
+    // Direction from base to tip and its normal
+    const dir = p5.Vector.sub(tipC, baseC).normalize();
+    const nrm = p.createVector(-dir.y, dir.x);
+  
+    // Offset for the two parallel lines
+    const halfGap = 3.5; // adjust for wider or narrower body
+  
+    const b1 = p5.Vector.add(baseC, p5.Vector.mult(nrm,  halfGap));
+    const b2 = p5.Vector.add(baseC, p5.Vector.mult(nrm, -halfGap));
+    const t1 = p5.Vector.add(tipC,  p5.Vector.mult(nrm,  halfGap));
+    const t2 = p5.Vector.add(tipC,  p5.Vector.mult(nrm, -halfGap));
+  
+    // Body lines
+    p.push();
+    p.stroke(...COL_LINE);
+    p.strokeWeight(3);
+    p.line(b1.x, b1.y, t1.x, t1.y);
+    p.line(b2.x, b2.y, t2.x, t2.y);
+  
+    // Dots
+    p.fill(40);
+    p.circle(baseC.x, baseC.y, 10); // barrel
+    p.circle(tipC.x,  tipC.y,  14); // tip head
     p.pop();
   }
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
