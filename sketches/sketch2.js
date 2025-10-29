@@ -1,6 +1,11 @@
 // Instance-mode sketch for tab 2
 registerSketch('sk2', function (p) {
 
+  p.ui = { ringsInput: null };
+
+  p.state = { rings: 5 };
+
+
   // Layout
   let wW, wH;
   const FIG_X = 120;     // stick figure base x
@@ -9,9 +14,9 @@ registerSketch('sk2', function (p) {
   const BEAM_LEN = () => Math.min(wW, wH) * 0.65; // distance to spot
 
   // Ring setup
-  const RINGS = 12;              // total rings from outer to inner
+  // const RINGS = 5;              // total rings from outer to inner
   const OUTER_R = () => Math.min(wW, wH) * 0.32;
-  const RING_W = () => OUTER_R() / RINGS;
+  const RING_W = () => OUTER_R() / p.state.rings;
 
   // Colors
   const COL_BG   = [50, 50, 50];
@@ -25,11 +30,11 @@ registerSketch('sk2', function (p) {
   const TIMER_TXT = 24;
   const TIMER_BG  = [0, 0, 0, 120];
   const TIMER_FG  = [255, 255, 255];
-  // Cached colors for lerp
-  let cYel, cOff;
+  // Cached colors 
+  let cYel, cBg;
 
   // Time tracking (so it works immediately on load)
-  let lastMinute = -1;
+  // let lastMinute = -1;
   
 
   p.setup = function () {
@@ -38,17 +43,55 @@ registerSketch('sk2', function (p) {
     p.createCanvas(wW, wH);
 
     cYel = p.color(...COL_YEL);
-    cOff = p.color(...COL_OFF);
+    cBg = p.color(...COL_OFF);
 
     lastMinute = p.minute();
+
+    p.ui.ringsInput = p.createInput(String(p.state.rings), 'number');
+    p.ui.ringsInput.attribute('min', '1');
+    p.ui.ringsInput.attribute('step', '1');
+    p.ui.ringsInput.style('font-size', '16px');
+    p.ui.ringsInput.style('padding', '6px 10px');
+    p.ui.ringsInput.style('border-radius', '10px');
+
+    p.ui.ringsInput.input(() => {
+      const val = parseInt(p.ui.ringsInput.value(), 10);
+      if (Number.isFinite(val) && val > 0) p.state.rings = val;
+    });
+
   };
+
+  p.placeRingControl = function () {
+    const w = 100, h = 36;
+    const label = 'Rings:';
+    p.textSize(16);
+    const labelW = p.textWidth(label);
+    const gap = 10;
+    const totalW = labelW + gap + w;
+  
+    const startX = p.width / 2 - totalW / 2;
+    const y = 12;
+  
+    // On-canvas label background
+    p.noStroke();
+    p.fill(255, 255, 255, 170);
+    p.rect(startX - 10, y - 6, totalW + 20, h + 12, 10);
+    p.fill(30);
+    p.textAlign(p.LEFT, p.CENTER);
+    p.text(label, startX, y + h / 2);
+  
+    // Place the DOM input
+    p.ui.ringsInput.position(startX + labelW + gap, y);
+    p.ui.ringsInput.size(w, h);
+  };
+  
   p.draw = function () {
     p.background(...COL_BG);
     
     // Time
     const m = p.minute();
     const s = p.second();
-    const activeRingIdx = m % RINGS;     // which ring is fading this minute
+    const activeRingIdx = m % p.state.rings;     // which ring is fading this minute
     const fadeT = s / 60;                // 0..1 over the minute
 
     // Geometry for flashlight and spot
@@ -71,7 +114,10 @@ registerSketch('sk2', function (p) {
     drawCone(figX, figY, torchTip, spotCenter);
 
     drawRings(spotCenter.x, spotCenter.y, activeRingIdx, fadeT);
-    drawCycleTimerAboveFigure(figX, figY, activeRingIdx, s, RINGS);
+    drawCycleTimerAboveFigure(figX, figY, activeRingIdx, s, p.state.rings);
+
+    p.placeRingControl();
+
 
   };
 
@@ -158,11 +204,10 @@ registerSketch('sk2', function (p) {
     p.line(a2.x, a2.y, b2.x, b2.y);
   }
   function drawRings(cx, cy, activeIdx, t) {
-    // Outer index 0, inner index RINGS-1
     p.stroke(...COL_LINE);
     p.strokeWeight(1.5);
   
-    for (let i = 0; i < RINGS; i++) {
+    for (let i = 0; i < p.state.rings; i++) {
       const outerR = OUTER_R() - i * RING_W();
       const innerR = Math.max(0, outerR - RING_W());
   
@@ -201,7 +246,7 @@ registerSketch('sk2', function (p) {
     // Inner most dot outline
     p.noFill();
     p.stroke(...COL_LINE);
-    p.circle(cx, cy, Math.max(2, (OUTER_R() - RINGS * RING_W()) * 2));
+    p.circle(cx, cy, Math.max(2, (OUTER_R() - p.state.rings * RING_W()) * 2));
   }
   function drawCycleTimerAboveFigure(figX, figY, activeRingIdx, secInMinute, ringsTotal) {
     // total seconds in the cycle
@@ -230,5 +275,8 @@ registerSketch('sk2', function (p) {
     p.fill(...TIMER_FG);
     p.text(tStr, figX, yTop + th * 0.12);
   }
-  p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
+  p.windowResized = function () { 
+    p.resizeCanvas(p.windowWidth, p.windowHeight); 
+    p.placeRingControl();
+  };
 });
