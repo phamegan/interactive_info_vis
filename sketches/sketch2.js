@@ -1,4 +1,4 @@
-// Instance-mode sketch for tab 2
+// sketch for tab 2
 registerSketch('sk2', function (p) {
 
   p.ui = { ringsInput: null };
@@ -14,7 +14,6 @@ registerSketch('sk2', function (p) {
   const BEAM_LEN = () => Math.min(wW, wH) * 0.65; // distance to spot
 
   // Ring setup
-  // const RINGS = 5;              // total rings from outer to inner
   const OUTER_R = () => Math.min(wW, wH) * 0.32;
   const RING_W = () => OUTER_R() / p.state.rings;
 
@@ -62,29 +61,44 @@ registerSketch('sk2', function (p) {
   };
 
   p.placeRingControl = function () {
-    const w = 100, h = 36;
-    const label = 'Rings:';
+    if (!p.ui.ringsInput) return;
+  
+    const label = 'Select how many rings (minutes):';
+    const inputW = 60;
+    const inputH = 36;
+  
+    const margin = 20;
+    const pad = 10;
+  
     p.textSize(16);
     const labelW = p.textWidth(label);
-    const gap = 10;
-    const totalW = labelW + gap + w;
   
-    const startX = p.width / 2 - totalW / 2;
-    const y = 12;
+    // Panel matches input width for clean stacking
+    const panelW = Math.max(labelW + pad * 2, inputW);
+    const panelH = inputH;
   
-    // On-canvas label background
+    const panelX = margin;
+    const panelY = margin;
+  
+    // Panel background
     p.noStroke();
     p.fill(255, 255, 255, 170);
-    p.rect(startX - 10, y - 6, totalW + 20, h + 12, 10);
+    p.rect(panelX, panelY, panelW, panelH, 12);
+  
+    // Label centered vertically in panel
     p.fill(30);
     p.textAlign(p.LEFT, p.CENTER);
-    p.text(label, startX, y + h / 2);
+    p.text(label, panelX + pad, panelY + panelH / 2);
   
-    // Place the DOM input
-    p.ui.ringsInput.position(startX + labelW + gap, y);
-    p.ui.ringsInput.size(w, h);
+    // Input directly below the panel
+    const inputX = panelX;
+    const inputY = panelY + panelH + 80;
+  
+    p.ui.ringsInput.position(inputX, inputY);
+    p.ui.ringsInput.size(panelW - pad * 2, inputH);
   };
-  
+
+
   p.draw = function () {
     p.background(...COL_BG);
     
