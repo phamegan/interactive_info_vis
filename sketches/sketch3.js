@@ -4,7 +4,9 @@ registerSketch('sk3', function (p) {
     waterLevel: 1,                // 1 = full, 0 = empty
     totalSeconds: .5 * 60,     // capacity in seconds
     remainingSeconds: .5 * 60, // starts full
-    lastSecondTick: 0          // last 1s tick time
+    lastSecondTick: 0,       // last 1s tick time
+    minutesInput: null,
+    minutesApplyBtn: null,
   };
 
   p.bottle = {
@@ -13,10 +15,33 @@ registerSketch('sk3', function (p) {
     capHeight: 0
   };
 
+  p.ui = { resetBtn: null, setMinutesBtn: null };
+
   p.setup = function () {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.layoutBottle();
     p.state.lastSecondTick = p.millis();
+
+    p.ui.minutesInput = p.createInput(String(Math.round(p.state.totalSeconds / 60)), 'number');
+    p.ui.minutesInput.attribute('min', '1');
+    p.ui.minutesInput.attribute('step', '1');
+    p.ui.minutesInput.size(90);
+    p.ui.minutesInput.style('font-size', '16px');
+    p.ui.minutesInput.style('padding', '6px 10px');
+    p.ui.minutesInput.style('border-radius', '10px');
+
+    // Apply button
+    p.ui.minutesApplyBtn = p.createButton('Apply');
+    p.ui.minutesApplyBtn.size(90, 40);
+    p.ui.minutesApplyBtn.style('font-size', '16px');
+    p.ui.minutesApplyBtn.style('border-radius', '12px');
+    p.ui.minutesApplyBtn.style('cursor', 'pointer');
+    p.ui.minutesApplyBtn.mousePressed(p.applyMinutes);
+
+    // Allow Enter key in the input to apply too
+    p.ui.minutesInput.elt.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') p.applyMinutes();
+    });
   };
 
   p.layoutBottle = function () {
@@ -136,17 +161,57 @@ registerSketch('sk3', function (p) {
     }
     p.pop();
   };
-
+  
+  p.applyMinutes = function () {
+    const val = parseInt(p.ui.minutesInput.value(), 10);
+    if (!Number.isFinite(val) || val <= 0) {
+      // keep it quiet, just reset the field to current minutes
+      p.ui.minutesInput.value(String(Math.max(1, Math.round(p.state.totalSeconds / 60))));
+      return;
+    }
+    p.state.totalSeconds = val * 60;
+    p.state.remainingSeconds = p.state.totalSeconds;
+    p.state.waterLevel = 1;
+    p.state.lastSecondTick = p.millis();
+  };
+  
   p.draw = function () {
     p.background(240);
     p.tickTimerEachSecond();
     p.drawBottle();
     p.drawFaceWithMood();
+    p.placeControls();
+
   };
 
+  p.placeControls = function () {
+    const btnW = 160, btnH = 40, gap = 16;
   
+    // Reset button on the left of the control row
+    if (p.ui.resetBtn) {
+      p.ui.resetBtn.size(btnW, btnH);
+      const totalW = btnW + gap + 90 + gap + 90; // reset + gap + input + gap + apply
+      const startX = p.width / 2 - totalW / 2;
+      const y = p.height - btnH - 24;
+      p.ui.resetBtn.position(startX, y);
+  
+      // Minutes input
+      if (p.ui.minutesInput) {
+        p.ui.minutesInput.position(startX + btnW + gap, y);
+        p.ui.minutesInput.size(90, btnH); // match height for a tidy row
+      }
+  
+      // Apply button
+      if (p.ui.minutesApplyBtn) {
+        p.ui.minutesApplyBtn.position(startX + btnW + gap + 90 + gap, y);
+      }
+    }
+  };
+
   p.windowResized = function () {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
     p.layoutBottle();
+    p.placeControls();
+
   };
 });
