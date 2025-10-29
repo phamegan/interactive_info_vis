@@ -19,8 +19,21 @@ registerSketch('sk2', function (p) {
   const COL_YEL  = [255, 235, 100];  // bright yellow
   const COL_OFF  = [0, 0, 0];        // black
 
+  // Cached colors for lerp
+  let cYel, cOff;
+
+  // Time tracking (so it works immediately on load)
+  let lastMinute = -1;
+
   p.setup = function () {
-    p.createCanvas(p.windowWidth, p.windowHeight);
+    wW = p.windowWidth;
+    wH = p.windowHeight;
+    p.createCanvas(wW, wH);
+
+    cYel = p.color(...COL_YEL);
+    cOff = p.color(...COL_OFF);
+
+    lastMinute = p.minute();
   };
   p.draw = function () {
     p.background(220);
