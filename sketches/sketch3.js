@@ -38,10 +38,23 @@ registerSketch('sk3', function (p) {
     p.ui.minutesApplyBtn.style('cursor', 'pointer');
     p.ui.minutesApplyBtn.mousePressed(p.applyMinutes);
 
+    p.ui.resetBtn = p.createButton('Reset timer');
+    p.ui.resetBtn.size(160, 40);
+    p.ui.resetBtn.style('font-size', '16px');
+    p.ui.resetBtn.style('border-radius', '12px');
+    p.ui.resetBtn.style('cursor', 'pointer');
+    p.ui.resetBtn.mousePressed(function () {
+      p.state.remainingSeconds = p.state.totalSeconds;
+      p.state.waterLevel = 1;
+      p.state.lastSecondTick = p.millis();
+});
+
     // Allow Enter key in the input to apply too
     p.ui.minutesInput.elt.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') p.applyMinutes();
     });
+
+    
   };
 
   p.layoutBottle = function () {
