@@ -14,7 +14,7 @@ registerSketch('sk2', function (p) {
   const RING_W = () => OUTER_R() / RINGS;
 
   // Colors
-  const COL_BG   = [245, 245, 245];
+  const COL_BG   = [50, 50, 50];
   const COL_LINE = [0, 0, 0];
   const COL_YEL  = [255, 235, 100];  // bright yellow
   const COL_OFF  = [0, 0, 0];        // black
@@ -26,6 +26,7 @@ registerSketch('sk2', function (p) {
 
   // Time tracking (so it works immediately on load)
   let lastMinute = -1;
+  
 
   p.setup = function () {
     wW = p.windowWidth;
