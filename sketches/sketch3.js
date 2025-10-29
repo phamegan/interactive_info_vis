@@ -1,10 +1,10 @@
-// Instance-mode sketch for tab 3
+// Sketch for tab 3
 registerSketch('sk3', function (p) {
   p.state = {
-    waterLevel: 1,                // 1 = full, 0 = empty
-    totalSeconds: .5 * 60,     // capacity in seconds
-    remainingSeconds: .5 * 60, // starts full
-    lastSecondTick: 0,       // last 1s tick time
+    waterLevel: 1,               
+    totalSeconds: .5 * 60,    
+    remainingSeconds: .5 * 60,
+    lastSecondTick: 0,      
     minutesInput: null,
     minutesApplyBtn: null,
   };
@@ -30,7 +30,6 @@ registerSketch('sk3', function (p) {
     p.ui.minutesInput.style('padding', '6px 10px');
     p.ui.minutesInput.style('border-radius', '10px');
 
-    // Apply button
     p.ui.minutesApplyBtn = p.createButton('Apply');
     p.ui.minutesApplyBtn.size(90, 40);
     p.ui.minutesApplyBtn.style('font-size', '16px');
@@ -49,7 +48,6 @@ registerSketch('sk3', function (p) {
       p.state.lastSecondTick = p.millis();
 });
 
-    // Allow Enter key in the input to apply too
     p.ui.minutesInput.elt.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') p.applyMinutes();
     });
@@ -64,7 +62,6 @@ registerSketch('sk3', function (p) {
     p.bottle.width = bodyW;
     p.bottle.height = bodyH;
   
-    // Slightly right of center to balance face on the left
     const centerX = p.width * 0.60;
     p.bottle.x = centerX - bodyW / 2;
     p.bottle.y = p.height / 2 - bodyH / 2;
@@ -75,26 +72,23 @@ registerSketch('sk3', function (p) {
   p.drawBottle = function () {
     const b = p.bottle;
   
-    // Body
     p.stroke(0);
     p.strokeWeight(2);
     p.fill(255);
     p.rect(b.x, b.y, b.width, b.height, b.corner);
   
-    // Cap: black rectangle same width as body, rounded on top corners
     const capY = b.y - b.capHeight + 2;
     p.noStroke();
     p.fill(0);
     p.rect(b.x, capY, b.width, b.capHeight, b.corner * 0.6, b.corner * 0.6, 0, 0);
   
-    // Water fill
     const innerPad = 6;
     const innerX = b.x + innerPad;
     const innerY = b.y + innerPad;
     const innerW = b.width - innerPad * 2;
     const innerH = b.height - innerPad * 2;
   
-    const wl = p.state.waterLevel; // defined in step 2
+    const wl = p.state.waterLevel;
     const waterTop = innerY + innerH * (1 - wl);
   
     p.noStroke();
@@ -111,7 +105,6 @@ registerSketch('sk3', function (p) {
       if (p.state.remainingSeconds > 0) {
         p.state.remainingSeconds -= 1;
   
-        // Update water level from time fraction
         p.state.waterLevel = p.constrain(
           p.state.remainingSeconds / p.state.totalSeconds, 0, 1
         );
@@ -141,8 +134,8 @@ registerSketch('sk3', function (p) {
     const x = Math.max(160, p.width * 0.18);
     const y = p.height / 2;
   
-    const frac = p.state.remainingSeconds / p.state.totalSeconds; // 1..0
-    let mood = 0; // 0 happy, 1 neutral, 2 angry
+    const frac = p.state.remainingSeconds / p.state.totalSeconds; 
+    let mood = 0; 
     if (frac > 0.5) mood = 0;
     else if (frac > 0.2) mood = 1;
     else mood = 2;
@@ -172,7 +165,7 @@ registerSketch('sk3', function (p) {
   p.applyMinutes = function () {
     const val = parseInt(p.ui.minutesInput.value(), 10);
     if (!Number.isFinite(val) || val <= 0) {
-      // keep it quiet, just reset the field to current minutes
+    
       p.ui.minutesInput.value(String(Math.max(1, Math.round(p.state.totalSeconds / 60))));
       return;
     }
@@ -183,7 +176,7 @@ registerSketch('sk3', function (p) {
   };
   
   p.drawMessages = function (midX, controlsY, labelGap = 36) {
-    const baselineY = controlsY - labelGap; // text right above buttons
+    const baselineY = controlsY - labelGap; 
     p.noStroke();
     p.textAlign(p.CENTER, p.BOTTOM);
   
@@ -194,7 +187,7 @@ registerSketch('sk3', function (p) {
     } else {
       p.fill(30);
       p.textSize(16);
-      p.text('Choose how long till your next water break', midX, baselineY);
+      p.text('Choose how long till your next water break (minutes)', midX, baselineY);
     }
   };  
 
@@ -202,20 +195,19 @@ registerSketch('sk3', function (p) {
     const btnW = 160, btnH = 40, gap = 30;
     const inputW = 90, applyW = 90;
   
-    // Face and bottle centers
+
     const faceSize = Math.min(p.width, p.height) * 0.22;
     const faceX = Math.max(160, p.width * 0.18);
     const bottleCenterX = p.bottle.x + p.bottle.width / 2;
     const midX = (faceX + bottleCenterX) / 2;
   
-    // Controls go a bit LOWER than the text
+
     const labelGap = 100; 
     const totalW = btnW + gap + inputW + gap + applyW;
     const startX = midX - totalW / 2;
-    const baseY = p.height / 2 - btnH / 2;   // row center
-    const controlsY = baseY + labelGap;      // push buttons below the text
+    const baseY = p.height / 2 - btnH / 2;  
+    const controlsY = baseY + labelGap; 
   
-    // Place controls
     if (p.ui.resetBtn) {
       p.ui.resetBtn.size(btnW, btnH);
       p.ui.resetBtn.position(startX, controlsY);
@@ -229,7 +221,6 @@ registerSketch('sk3', function (p) {
       p.ui.minutesApplyBtn.position(startX + btnW + gap + inputW + gap, controlsY);
     }
   
-    // Draw the label above the buttons
     if (typeof p.drawMessages === 'function') {
       p.drawMessages(midX, controlsY, labelGap);
     }
