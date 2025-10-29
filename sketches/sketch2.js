@@ -4,6 +4,7 @@ registerSketch('sk2', function (p) {
   p.ui = { ringsInput: null };
 
   p.state = { rings: 5 };
+  let cycleStartSec = null;
 
 
   // Layout
@@ -41,10 +42,11 @@ registerSketch('sk2', function (p) {
     wH = p.windowHeight;
     p.createCanvas(wW, wH);
 
+    cycleStartSec = p.millis() / 1000;
+
+
     cYel = p.color(...COL_YEL);
     cBg = p.color(...COL_OFF);
-
-    lastMinute = p.minute();
 
     p.ui.ringsInput = p.createInput(String(p.state.rings), 'number');
     p.ui.ringsInput.attribute('min', '1');
@@ -55,9 +57,11 @@ registerSketch('sk2', function (p) {
 
     p.ui.ringsInput.input(() => {
       const val = parseInt(p.ui.ringsInput.value(), 10);
-      if (Number.isFinite(val) && val > 0) p.state.rings = val;
+      if (Number.isFinite(val) && val > 0) {
+        p.state.rings = val;
+        cycleStartSec = p.millis() / 1000; // restart countdown when ring amount changes
+      }
     });
-
   };
 
   p.placeRingControl = function () {
@@ -102,11 +106,17 @@ registerSketch('sk2', function (p) {
   p.draw = function () {
     p.background(...COL_BG);
     
-    // Time
-    const m = p.minute();
-    const s = p.second();
-    const activeRingIdx = m % p.state.rings;     // which ring is fading this minute
-    const fadeT = s / 60;                // 0..1 over the minute
+    const nowSec = p.millis() / 1000;
+    let elapsed = nowSec - cycleStartSec;
+    const total = p.state.rings * 60;
+    if (elapsed >= total) {
+      cycleStartSec = nowSec;
+      elapsed = 0;
+    }
+    
+    const progress = elapsed / total; // 0..1 through full cycle
+    const activeRingIdx = Math.floor(progress * p.state.rings);
+    const fadeT = (progress * p.state.rings) % 1;           // 0..1 over the minute
 
     // Geometry for flashlight and spot
     const figX = FIG_X;
@@ -128,7 +138,7 @@ registerSketch('sk2', function (p) {
     drawCone(figX, figY, torchTip, spotCenter);
 
     drawRings(spotCenter.x, spotCenter.y, activeRingIdx, fadeT);
-    drawCycleTimerAboveFigure(figX, figY, activeRingIdx, s, p.state.rings);
+    drawCycleTimerAboveFigure(figX, figY, p.state.rings);
 
     p.placeRingControl();
 
@@ -217,7 +227,8 @@ registerSketch('sk2', function (p) {
     p.line(a1.x, a1.y, b1.x, b1.y);
     p.line(a2.x, a2.y, b2.x, b2.y);
   }
-  function drawRings(cx, cy, activeIdx, t) {
+  function drawRings(cx, cy, activeRingIdx, fadeT) {
+    let baseCol;
     p.stroke(...COL_LINE);
     p.strokeWeight(1.5);
   
@@ -225,20 +236,26 @@ registerSketch('sk2', function (p) {
       const outerR = OUTER_R() - i * RING_W();
       const innerR = Math.max(0, outerR - RING_W());
   
-      // Base color interpolation: yellow -> background
-      let baseCol;
-      if (i < activeIdx) {
-        baseCol = p.lerpColor(cYel, p.color(...COL_BG), 1);     // fully at BG tone
-      } else if (i === activeIdx) {
-        baseCol = p.lerpColor(cYel, p.color(...COL_BG), t);     // fading this minute
-      } else {
-        baseCol = cYel;                                         // future rings stay bright
-      }
-  
-      // Apply a minimum alpha so faded rings remain visible
-      const alpha = (i < activeIdx) ? MIN_ALPHA
-                   : (i === activeIdx) ? p.map(t, 0, 1, 200, MIN_ALPHA)
-                   : 220;
+    // Outer ring index is 0. Fade outer first as i increases outward.
+    const ringFromOuter = i;
+
+    // If this ring's time has passed
+    if (ringFromOuter < activeRingIdx) {
+      baseCol = p.lerpColor(cYel, p.color(...COL_BG), 1);
+    }
+    // If currently fading
+    else if (ringFromOuter === activeRingIdx) {
+      baseCol = p.lerpColor(cYel, p.color(...COL_BG), fadeT);
+    }
+    // Future rings stay bright
+    else {
+      baseCol = cYel;
+    }
+      
+    const alpha = (i < activeRingIdx) ? MIN_ALPHA
+    : (i === activeRingIdx) ? p.map(fadeT, 0, 1, 200, MIN_ALPHA)
+    : 220;
+
   
       const fillCol = p.color(p.red(baseCol), p.green(baseCol), p.blue(baseCol), alpha);
   
@@ -262,16 +279,20 @@ registerSketch('sk2', function (p) {
     p.stroke(...COL_LINE);
     p.circle(cx, cy, Math.max(2, (OUTER_R() - p.state.rings * RING_W()) * 2));
   }
-  function drawCycleTimerAboveFigure(figX, figY, activeRingIdx, secInMinute, ringsTotal) {
+  function drawCycleTimerAboveFigure(figX, figY, ringsTotal) {
     // total seconds in the cycle
+    const nowSec = p.millis() / 1000;
+    let elapsed = nowSec - cycleStartSec;
     const total = ringsTotal * 60;
-    // seconds elapsed so far in the cycle
-    const elapsed = activeRingIdx * 60 + secInMinute;
-    // seconds remaining, never negative
-    const remaining = Math.max(0, total - elapsed);
-  
+    
+    if (elapsed >= total) {
+      cycleStartSec = nowSec;
+      elapsed = 0;
+    }
+    
+    const remaining = total - elapsed;
     const mm = Math.floor(remaining / 60);
-    const ss = remaining % 60;
+    const ss = Math.floor(remaining % 60);
   
     const tStr = `${p.nf(mm,2)}:${p.nf(ss,2)}`;
   
