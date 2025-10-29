@@ -87,13 +87,7 @@ registerSketch('sk3', function (p) {
     p.noStroke();
     p.fill(0, 120, 255);
     p.rect(innerX, waterTop, innerW, innerH * wl, b.corner * 0.6);
-  
-    // Highlight
-    p.noFill();
-    p.stroke(255);
-    p.strokeWeight(2);
-    p.line(innerX + 8, waterTop + 6, innerX + innerW - 8, waterTop + 6);
-    p.strokeWeight(1);
+
   };
 
   p.tickTimerEachSecond = function () {
