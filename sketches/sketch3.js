@@ -169,14 +169,32 @@ registerSketch('sk3', function (p) {
     p.state.lastSecondTick = p.millis();
   };
   
-  p.draw = function () {
-    p.background(240);
-    p.tickTimerEachSecond();
-    p.drawBottle();
-    p.drawFaceWithMood();
-    p.placeControls();
-
+  p.drawMessages = function () {
+    // Match sizes used in placeControls()
+    const btnW = 160, btnH = 40, gap = 16;
+    const inputW = 90, applyW = 90;
+    const totalW = btnW + gap + inputW + gap + applyW;
+  
+    const startX = p.width / 2 - totalW / 2;
+    const rowY = p.height - btnH - 24;
+  
+    const centerX = startX + totalW / 2;
+    const baselineY = rowY - 12; // place text just above the buttons
+  
+    p.noStroke();
+    p.textAlign(p.CENTER, p.BOTTOM);
+  
+    if (p.state.remainingSeconds <= 0) {
+      p.fill(200, 0, 0);
+      p.textSize(18);
+      p.text('Water is empty. Choose another time for your next break!', centerX, baselineY);
+    } else {
+      p.fill(30);
+      p.textSize(16);
+      p.text('Choose how long till your next water break', centerX, baselineY);
+    }
   };
+  
 
   p.placeControls = function () {
     const btnW = 160, btnH = 40, gap = 16;
@@ -200,6 +218,15 @@ registerSketch('sk3', function (p) {
         p.ui.minutesApplyBtn.position(startX + btnW + gap + 90 + gap, y);
       }
     }
+  };
+
+  p.draw = function () {
+    p.background(240);
+    p.tickTimerEachSecond();
+    p.drawBottle();
+    p.drawFaceWithMood();
+    p.placeControls();
+    p.drawMessages();
   };
 
   p.windowResized = function () {
