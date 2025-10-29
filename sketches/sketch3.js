@@ -182,54 +182,56 @@ registerSketch('sk3', function (p) {
     p.state.lastSecondTick = p.millis();
   };
   
-  p.drawMessages = function () {
-    // Match sizes used in placeControls()
-    const btnW = 160, btnH = 40, gap = 16;
-    const inputW = 90, applyW = 90;
-    const totalW = btnW + gap + inputW + gap + applyW;
-  
-    const startX = p.width / 2 - totalW / 2;
-    const rowY = p.height - btnH - 24;
-  
-    const centerX = startX + totalW / 2;
-    const baselineY = rowY - 12; // place text just above the buttons
-  
+  p.drawMessages = function (midX, controlsY, labelGap = 36) {
+    const baselineY = controlsY - labelGap; // text right above buttons
     p.noStroke();
     p.textAlign(p.CENTER, p.BOTTOM);
   
     if (p.state.remainingSeconds <= 0) {
       p.fill(200, 0, 0);
       p.textSize(18);
-      p.text('Water is empty. Choose another time for your next break!', centerX, baselineY);
+      p.text('Water is empty. Choose another time for your next break!', midX, baselineY);
     } else {
       p.fill(30);
       p.textSize(16);
-      p.text('Choose how long till your next water break', centerX, baselineY);
+      p.text('Choose how long till your next water break', midX, baselineY);
     }
-  };
-  
+  };  
 
   p.placeControls = function () {
-    const btnW = 160, btnH = 40, gap = 16;
+    const btnW = 160, btnH = 40, gap = 30;
+    const inputW = 90, applyW = 90;
   
-    // Reset button on the left of the control row
+    // Face and bottle centers
+    const faceSize = Math.min(p.width, p.height) * 0.22;
+    const faceX = Math.max(160, p.width * 0.18);
+    const bottleCenterX = p.bottle.x + p.bottle.width / 2;
+    const midX = (faceX + bottleCenterX) / 2;
+  
+    // Controls go a bit LOWER than the text
+    const labelGap = 100; 
+    const totalW = btnW + gap + inputW + gap + applyW;
+    const startX = midX - totalW / 2;
+    const baseY = p.height / 2 - btnH / 2;   // row center
+    const controlsY = baseY + labelGap;      // push buttons below the text
+  
+    // Place controls
     if (p.ui.resetBtn) {
       p.ui.resetBtn.size(btnW, btnH);
-      const totalW = btnW + gap + 90 + gap + 90; // reset + gap + input + gap + apply
-      const startX = p.width / 2 - totalW / 2;
-      const y = p.height - btnH - 24;
-      p.ui.resetBtn.position(startX, y);
+      p.ui.resetBtn.position(startX, controlsY);
+    }
+    if (p.ui.minutesInput) {
+      p.ui.minutesInput.size(inputW, btnH);
+      p.ui.minutesInput.position(startX + btnW + gap, controlsY);
+    }
+    if (p.ui.minutesApplyBtn) {
+      p.ui.minutesApplyBtn.size(applyW, btnH);
+      p.ui.minutesApplyBtn.position(startX + btnW + gap + inputW + gap, controlsY);
+    }
   
-      // Minutes input
-      if (p.ui.minutesInput) {
-        p.ui.minutesInput.position(startX + btnW + gap, y);
-        p.ui.minutesInput.size(90, btnH); // match height for a tidy row
-      }
-  
-      // Apply button
-      if (p.ui.minutesApplyBtn) {
-        p.ui.minutesApplyBtn.position(startX + btnW + gap + 90 + gap, y);
-      }
+    // Draw the label above the buttons
+    if (typeof p.drawMessages === 'function') {
+      p.drawMessages(midX, controlsY, labelGap);
     }
   };
 
@@ -239,7 +241,6 @@ registerSketch('sk3', function (p) {
     p.drawBottle();
     p.drawFaceWithMood();
     p.placeControls();
-    p.drawMessages();
   };
 
   p.windowResized = function () {
