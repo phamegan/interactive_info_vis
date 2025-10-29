@@ -17,6 +17,7 @@ registerSketch('sk4', function (p) {
   const COL_CANOPY_MIN = [34, 139, 34];   // rich green
   const COL_CANOPY_SEC = [144, 238, 144];  // light green
   const COL_TRUNK      = [110, 75, 50];   // brown
+  const COL_MTN_FILL   = [150, 95, 50]; // tan
   const COL_STROKE     = [0, 0, 0];       // outline
   const SCALE_SEC      = 0.75;     
 
@@ -174,6 +175,28 @@ registerSketch('sk4', function (p) {
 
     p.rect(x - trunkW/2, botY, trunkW, trunkH, 2);
     p.pop();
+  };
+
+  // Function to draw a mountain
+  p.drawMountainFilled = function (x, y, size) {
+    const h = size;
+    const w = size * 0.95;
+    const leftX  = x - w / 2;
+    const rightX = x + w / 2;
+    const baseY  = y + h / 2;
+    const peakY  = y - h / 2;
+
+    // fill
+    p.noStroke();
+    p.fill(...COL_MTN_FILL);
+    p.triangle(leftX, baseY, x, peakY, rightX, baseY);
+
+    // outline
+    p.noFill();
+    p.stroke(...COL_STROKE);
+    p.strokeWeight(2);
+    p.strokeJoin(p.ROUND);
+    p.triangle(leftX, baseY, x, peakY, rightX, baseY);
   };
 
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
