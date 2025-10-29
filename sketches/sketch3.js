@@ -87,12 +87,29 @@ registerSketch('sk3', function (p) {
     }
   };
 
+  p.drawFaceBase = function (x, y, size) {
+    p.push();
+    p.fill(255, 220, 180);
+    p.stroke(0);
+    p.strokeWeight(2);
+    p.ellipse(x, y, size);
+  
+    const eyeOffsetX = size * 0.22;
+    const eyeOffsetY = size * 0.16;
+    const eyeR = size * 0.06;
+    p.fill(0);
+    p.noStroke();
+    p.ellipse(x - eyeOffsetX, y - eyeOffsetY, eyeR);
+    p.ellipse(x + eyeOffsetX, y - eyeOffsetY, eyeR);
+    p.pop();
+  };
+
   p.draw = function () {
     p.background(240);
-
     p.tickTimerEachSecond();
-    // 1) bottle
     p.drawBottle();
+    p.drawFaceBase(Math.max(160, p.width * 0.18), p.height / 2, Math.min(p.width, p.height) * 0.22);
+
   };
   
   p.windowResized = function () {
