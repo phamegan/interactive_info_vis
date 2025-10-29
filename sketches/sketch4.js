@@ -14,6 +14,12 @@ registerSketch('sk4', function (p) {
   let wW;
   let wH;
 
+  const COL_CANOPY_MIN = [34, 139, 34];   // rich green
+  const COL_CANOPY_SEC = [144, 238, 144];  // light green
+  const COL_TRUNK      = [110, 75, 50];   // brown
+  const COL_STROKE     = [0, 0, 0];       // outline
+  const SCALE_SEC      = 0.75;     
+
   p.setup = function () {
     wW = p.windowWidth;
     wH = p.windowHeight;
@@ -88,11 +94,11 @@ registerSketch('sk4', function (p) {
   p.drawShapes = function (arr, type) {
     for (let c of arr) {
       if (type === 'hour') {
-        p.drawMountain(c.x, c.y, c.d); // Draw mountain for hours
+        p.drawMountainFilled(c.x, c.y, c.d);
       } else if (type === 'min') {
-        p.drawTree(c.x, c.y, c.d, 10, p.color(34, 139, 34)); // Draw larger tree for minutes
+        p.drawPine(c.x, c.y, c.d, COL_CANOPY_MIN);
       } else if (type === 'sec') {
-        p.drawTree(c.x, c.y, c.d, 5, p.color(60, 179, 113)); // Draw mini tree for seconds
+        p.drawPine(c.x, c.y, c.d * SCALE_SEC, COL_CANOPY_SEC);
       }
     }
   };
@@ -127,29 +133,47 @@ registerSketch('sk4', function (p) {
   };
 
   // Function to draw a tree
-  p.drawTree = function (x, y, size, irregularity, color) {
-    p.fill(color);
-    p.noStroke();
-    p.beginShape();
-    for (let angle = 0; angle < p.TWO_PI; angle += 0.1) {
-      let offset = p.noise(p.cos(angle) * irregularity, p.sin(angle) * irregularity) * irregularity;
-      let r = size + offset;
-      let xOffset = x + r * p.cos(angle);
-      let yOffset = y + r * p.sin(angle);
-      p.vertex(xOffset, yOffset);
-    }
-    p.endShape(p.CLOSE);
-  };
+  p.drawPine = function (x, y, size, canopyRGB) {
+    const trunkH = size * 0.45;
+    const trunkW = Math.max(2, size * 0.14);
 
-  // Function to draw a mountain
-  p.drawMountain = function (x, y, size) {
-    p.fill(139, 69, 19); // Brown color for the mountain
+    const canopyH = size;
+    const topY = y - canopyH * 0.6;
+    const midY = y - canopyH * 0.15;
+    const botY = y + canopyH * 0.25;
+
+    const w1 = size * 0.35;
+    const w2 = size * 0.55;
+    const w3 = size * 0.75;
+
+    // Canopy fill
     p.noStroke();
-    p.beginShape();
-    p.vertex(x - size / 2, y + size / 2); // Bottom left
-    p.vertex(x, y - size / 2); // Peak
-    p.vertex(x + size / 2, y + size / 2); // Bottom right
-    p.endShape(p.CLOSE);
+    p.fill(...canopyRGB);
+
+    // bottom triangle
+    p.triangle(x, midY + size*0.12, x - w3, botY, x + w3, botY);
+    // middle triangle
+    p.triangle(x, midY - size*0.10, x - w2, midY + size*0.08, x + w2, midY + size*0.08);
+    // top triangle
+    p.triangle(x, topY, x - w1, midY - size*0.18, x + w1, midY - size*0.18);
+
+    // Trunk fill
+    p.fill(...COL_TRUNK);
+    p.rect(x - trunkW/2, botY, trunkW, trunkH, 2);
+
+     // Outline on top for sketch look
+    p.push();
+    p.noFill();
+    p.stroke(...COL_STROKE);
+    p.strokeWeight(2);
+    p.strokeJoin(p.ROUND);
+
+    p.triangle(x, midY + size*0.12, x - w3, botY, x + w3, botY);
+    p.triangle(x, midY - size*0.10, x - w2, midY + size*0.08, x + w2, midY + size*0.08);
+    p.triangle(x, topY, x - w1, midY - size*0.18, x + w1, midY - size*0.18);
+
+    p.rect(x - trunkW/2, botY, trunkW, trunkH, 2);
+    p.pop();
   };
 
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
