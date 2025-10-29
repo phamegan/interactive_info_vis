@@ -21,6 +21,10 @@ registerSketch('sk2', function (p) {
   
   const MIN_ALPHA = 70; // minimum alpha for faded rings
 
+  const TIMER_PAD = 10;
+  const TIMER_TXT = 24;
+  const TIMER_BG  = [0, 0, 0, 120];
+  const TIMER_FG  = [255, 255, 255];
   // Cached colors for lerp
   let cYel, cOff;
 
@@ -67,7 +71,7 @@ registerSketch('sk2', function (p) {
     drawCone(figX, figY, torchTip, spotCenter);
 
     drawRings(spotCenter.x, spotCenter.y, activeRingIdx, fadeT);
-
+    drawCycleTimerAboveFigure(figX, figY, activeRingIdx, s, RINGS);
 
   };
 
@@ -198,6 +202,33 @@ registerSketch('sk2', function (p) {
     p.noFill();
     p.stroke(...COL_LINE);
     p.circle(cx, cy, Math.max(2, (OUTER_R() - RINGS * RING_W()) * 2));
+  }
+  function drawCycleTimerAboveFigure(figX, figY, activeRingIdx, secInMinute, ringsTotal) {
+    // total seconds in the cycle
+    const total = ringsTotal * 60;
+    // seconds elapsed so far in the cycle
+    const elapsed = activeRingIdx * 60 + secInMinute;
+    // seconds remaining, never negative
+    const remaining = Math.max(0, total - elapsed);
+  
+    const mm = Math.floor(remaining / 60);
+    const ss = remaining % 60;
+  
+    const tStr = `${p.nf(mm,2)}:${p.nf(ss,2)}`;
+  
+    p.textSize(TIMER_TXT);
+    p.textAlign(p.CENTER, p.TOP);
+    const tw = p.textWidth(tStr);
+    const th = TIMER_TXT * 1.3;
+  
+    const yTop = Math.max(10, figY - 110);
+  
+    p.noStroke();
+    p.fill(...TIMER_BG);
+    p.rect(figX - tw/2 - TIMER_PAD*0.5, yTop, tw + TIMER_PAD, th, 8);
+  
+    p.fill(...TIMER_FG);
+    p.text(tStr, figX, yTop + th * 0.12);
   }
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 });
