@@ -52,9 +52,17 @@ registerSketch('sk2', function (p) {
     const torchTip = p.createVector(figX + torchLen * p.cos(BEAM_ANGLE),
                                     figY + torchLen * p.sin(BEAM_ANGLE));
 
+        
+    const spotCenter = p.createVector(
+      torchTip.x + BEAM_LEN() * p.cos(BEAM_ANGLE),
+      torchTip.y + BEAM_LEN() * p.sin(BEAM_ANGLE)
+    );
     // Draw stick figure on top so it is visible
     drawStickFigure(figX, figY);
     drawFlashlight(figX, figY, torchTip);
+
+    drawCone(figX, figY, torchTip, spotCenter);
+
 
   };
 
@@ -113,6 +121,32 @@ registerSketch('sk2', function (p) {
     p.circle(baseC.x, baseC.y, 10); // barrel
     p.circle(tipC.x,  tipC.y,  14); // tip head
     p.pop();
+  }
+
+  function drawCone(baseX, baseY, tip, spot) {
+    const coneW = Math.max(60, BEAM_LEN() * 0.30); // width at the spot
+
+    // Vector from tip to spot
+    const dir = p.createVector(spot.x - tip.x, spot.y - tip.y).normalize();
+    const normal = p.createVector(-dir.y, dir.x);
+
+    const nearW = 16; // small opening near flashlight
+    const a1 = p.createVector(tip.x + normal.x * nearW, tip.y + normal.y * nearW);
+    const a2 = p.createVector(tip.x - normal.x * nearW, tip.y - normal.y * nearW);
+    const b1 = p.createVector(spot.x + normal.x * coneW, spot.y + normal.y * coneW);
+    const b2 = p.createVector(spot.x - normal.x * coneW, spot.y - normal.y * coneW);
+
+    // Soft cone fill
+    p.noStroke();
+    p.fill(255, 255, 200, 60);
+    p.quad(a1.x, a1.y, a2.x, a2.y, b2.x, b2.y, b1.x, b1.y);
+
+    // Outline
+    p.noFill();
+    p.stroke(...COL_LINE);
+    p.strokeWeight(1.5);
+    p.line(a1.x, a1.y, b1.x, b1.y);
+    p.line(a2.x, a2.y, b2.x, b2.y);
   }
   p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 });
